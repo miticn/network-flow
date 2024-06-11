@@ -150,14 +150,12 @@ with open('rezultati_analiticki.csv', 'w', newline='') as csvfile:
 
             #vreme odziva ovog sistema sa centralnim serverom
             R_total = 0
-            V = copy.deepcopy(X)
-            V0 = V[0]
-            for i in range(len(V)):
-                V[i] = V[i]/V0
+            lambda_matrix_dependant_on_alpha = get_Lambda_array_alpha_dependant(k)
+            for i in range(len(lambda_matrix_dependant_on_alpha)):
                 T_curr = J[i]/X[i]
-                R_total += T_curr * V[i]
+                R_total += T_curr * lambda_matrix_dependant_on_alpha[i]
             
-            print('Response time:', R_total)
+            print('Response time:', R_total/1000)
 
             print('\n')
 
