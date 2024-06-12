@@ -1,6 +1,10 @@
 class Event(object):
-    def __init__(self, timestamp: int, fromm: int, to : int):
+    def __init__(self, timestamp: int, fromm: int, to : int, timestamp_start: int = None):
         self.timestamp = timestamp
+        if timestamp_start == None:
+            self.timestamp_start = timestamp
+        else:
+            self.timestamp_start = timestamp_start
         self.fromm = fromm
         self.to = to
         self.marked = False
