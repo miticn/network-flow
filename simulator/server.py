@@ -19,6 +19,8 @@ class Server:
         return len(self.job_queue)
     
     def tick(self):
+        if len(self.event_queue) == 0:
+            return
         if len(self.job_queue) > 0:
             self.ticks_working += self.timestamp - self.event_queue[0].timestamp
         self.timestamp = self.event_queue[0].timestamp
@@ -27,14 +29,15 @@ class Server:
             self.job_queue.pop(0)
             self.jobs_done += 1
             if len(self.job_queue) > 0:
-                pass
+                self.emitEvent()
         if self.event_queue[0].to == self.id:
             self.job_queue.append(self.event_queue[0].timestamp)
             if len(self.job_queue) == 1:
-                pass
+                self.emitEvent()
             
-    def emitEvent(self, event: Event):
+    def emitEvent(self):
         timestamp = np.random.exponential(self.s) + self.timestamp
+        #print(self.P_array)
         to = np.random.choice(len(self.P_array), p=self.P_array)
 
         self.event_publish_queue.append(Event(timestamp, self.id, to))
