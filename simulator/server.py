@@ -28,6 +28,7 @@ class Server:
         
         if self.event_queue[0].fromm == self.id:
             self.job_queue.pop(0)
+
             self.jobs_done += 1
             if len(self.job_queue) > 0:
                 self.emitEvent()
