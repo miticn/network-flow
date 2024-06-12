@@ -64,6 +64,7 @@ for k in range(2,6):
     alpha_list.append(max_alpha)
 
 #plot alpha(K) with dots and k must be integer
+print("Alpha_list", alpha_list)
 alpha_in_s_1 = [alpha*1000 for alpha in alpha_list]
 plt.scatter(k_list, alpha_in_s_1)
 plt.plot(k_list, alpha_in_s_1)

@@ -14,33 +14,47 @@ class Server:
         self.s = s
         self.P_array = P_array
         self.J_Jobs = 0
+        self.cumulative_probs = np.cumsum(self.P_array)
+        if self.id <= 3:
+            self.indicies_n = 1000000
+            self.indicies_index = 0
+            self.indicies = np.searchsorted(self.cumulative_probs, np.random.random(size=self.indicies_n), side="right")
+        self.exponential_values_n = 1000000
+        self.exponential_values = np.random.exponential(s, size=self.exponential_values_n)
+        self.exponential_index = 0
 
     def get_J(self):
         return self.J_Jobs/self.timestamp
     
     def tick(self):
-        if len(self.event_queue) == 0:
-            return
-        if len(self.job_queue) > 0:
+        job_queue_len = len(self.job_queue)
+        if job_queue_len != 0:
             self.ticks_working += self.event_queue[0].timestamp - self.timestamp
-            self.J_Jobs += (self.event_queue[0].timestamp - self.timestamp) * len(self.job_queue)
+            self.J_Jobs += (self.event_queue[0].timestamp - self.timestamp) * job_queue_len
         self.timestamp = self.event_queue[0].timestamp
         
         if self.event_queue[0].fromm == self.id:
             self.job_queue.pop(0)
-
+            job_queue_len -= 1
             self.jobs_done += 1
-            if len(self.job_queue) > 0:
+            if job_queue_len != 0:
                 self.emitEvent()
         if self.event_queue[0].to == self.id:
             self.job_queue.append((self.event_queue[0].timestamp, self.event_queue[0].timestamp_start))
-            if len(self.job_queue) == 1:
+            job_queue_len += 1
+            if job_queue_len == 1:
                 self.emitEvent()
             
     def emitEvent(self):
-        timestamp = np.random.exponential(self.s) + self.timestamp
+        timestamp = self.exponential_values[self.exponential_index] + self.timestamp
+        self.exponential_index = (self.exponential_index + 1) % self.exponential_values_n
         #print(self.P_array)
-        to = np.random.choice(len(self.P_array), p=self.P_array)
+
+        if self.id > 3:
+            to = len(self.P_array) - 1
+        else:
+            to = self.indicies[self.indicies_index]
+            self.indicies_index = (self.indicies_index + 1) % self.indicies_n
 
         heapq.heappush(self.event_queue, Event(timestamp, self.id, to, self.job_queue[0][1]))
 

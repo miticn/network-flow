@@ -7,12 +7,13 @@ from util import *
 import time
 
 import csv
+from collections import defaultdict
 
 
 def simulate(K:int, alpha: int, r: int, time_min : int = 30, MAX_K: int = 5):
     event_queue = []
     heapq.heapify(event_queue)
-    s = [4, 10, 15, 15, 25, 25, 25, 25, 25]
+    s = np.array([4, 10, 15, 15, 25, 25, 25, 25, 25])
     P = get_P_matrix(K)
 
     exit_column = np.zeros((P.shape[0], 1))
@@ -25,28 +26,26 @@ def simulate(K:int, alpha: int, r: int, time_min : int = 30, MAX_K: int = 5):
     max_timestamp = time_min * 60 * 1000
 
     Servers = [server.Server(i,s[i],event_queue,P[i]) for i in range(K+4)]
-
-    jobGenerator = JobGenerator(alpha/1000*r, event_queue, max_timestamp)
+    servers_len = len(Servers)
+    jobGenerator = JobGenerator(alpha*r, event_queue, max_timestamp)
     exitNode = ExitNode(len(Servers), event_queue)
 
-    first = True
-    while len(event_queue)!=0 or first:
-        first = False
-        if event_queue[0].fromm>=0 and event_queue[0].fromm<len(Servers):
+    while len(event_queue)!=0:
+        if event_queue[0].fromm>=0 and event_queue[0].fromm<servers_len:
             Servers[event_queue[0].fromm].tick()
         elif event_queue[0].fromm == -1:
             jobGenerator.tick()
         
         if event_queue[0].fromm != event_queue[0].to:
-            if event_queue[0].to>=0 and event_queue[0].to<len(Servers):
+            if event_queue[0].to>=0 and event_queue[0].to<servers_len:
                 Servers[event_queue[0].to].tick()
-            elif event_queue[0].to == len(Servers):
+            elif event_queue[0].to == servers_len:
                 exitNode.tick()
 
         heapq.heappop(event_queue)
 
 
-    padding = ["" for i in range(K,MAX_K)] 
+    padding = [0 for i in range(K,MAX_K)] 
     result = [K]+ [r]+ [exitNode.get_T()/1000] + [s.get_U() for s in Servers] + padding +\
              [s.get_X()*1000 for s in Servers] + padding + \
              [s.get_J() for s in Servers] + padding
@@ -55,7 +54,7 @@ def simulate(K:int, alpha: int, r: int, time_min : int = 30, MAX_K: int = 5):
 
 start_time = time.time()
 
-alpha_k = {2: 79.19999999999999, 3:118.8, 4:158.39999999999998, 5:158.4}
+alpha_k = {2:0.07919999999999999, 3:0.1188, 4:0.15839999999999999, 5:0.1584}
 r_list = [0.30, 0.55, 0.80, 1.00]
 
 results = []
@@ -80,3 +79,38 @@ with open('rezultati_simulacija.csv', 'w', newline='') as csvfile:
     for result in results:
         writer.writerow(result)
 print(f"Execution time: {execution_time} seconds")
+
+
+#100 iterations
+start_time = time.time()
+iterations = 100
+results = defaultdict(list)
+
+with ProcessPoolExecutor() as executor:
+    futures = [executor.submit(run_simulation, k, r) for k in range(2, 6) for r in r_list for i in range(iterations)]
+    for future in futures:
+        result = future.result()
+        key = (result[0], result[1])  # Use (k, r) as the key
+        results[key].append(result[2:])  # Store the rest of the result
+
+averaged_results = []
+for key, value_list in results.items():
+    value_array = np.array(value_list)
+    averaged_values = np.mean(value_array, axis=0)
+    averaged_results.append([key[0], key[1]] + averaged_values.tolist())
+
+
+end_time = time.time()
+execution_time = end_time - start_time
+
+
+print(f"Execution time: {execution_time} seconds")
+
+with open('rezultati_simulacija_usrednjeno.csv', 'w', newline='') as csvfile:
+    header = ['K', 'r', 'T', 'Ucpu', 'Uds1', 'Uds2', 'Uds3', 'Udu1', 'Udu2', 'Udu3', 'Udu4', 'Udu5',
+                  'Xcpu', 'Xds1', 'Xds2', 'Xds3', 'Xdu1', 'Xdu2', 'Xdu3', 'Xdu4', 'Xdu5',
+                  'Jcpu', 'Jds1', 'Jds2', 'Jds3', 'Jdu1', 'Jdu2', 'Jdu3', 'Jdu4', 'Jdu5']
+    writer = csv.writer(csvfile)
+    writer.writerow(header)
+    for result in averaged_results:
+        writer.writerow(result)
