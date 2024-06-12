@@ -11,8 +11,8 @@ class JobGenerator:
         self.event_queue.append(Event(self.exponential_values[0], -1, 0))
         self.max_timestamp = max_timestamp
 
-    def tick(self):
-        timestamp = self.exponential_values[self.exponential_index] + self.event_queue[0].timestamp
+    def tick(self, event: Event):
+        timestamp = self.exponential_values[self.exponential_index] + event.timestamp
         self.exponential_index = (self.exponential_index + 1)
         if self.exponential_index == self.exponential_values_n:
             self.exponential_values = np.random.exponential(self.average_generation_time, size=self.exponential_values_n)

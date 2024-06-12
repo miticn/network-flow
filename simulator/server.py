@@ -28,24 +28,24 @@ class Server:
     def get_J(self):
         return self.J_Jobs/self.timestamp
     
-    def update_timestamp(self):
+    def update_timestamp(self, event: Event):
         #self.job_queue_len = len(self.job_queue)
         if self.job_queue_len != 0:
-            self.ticks_working += self.event_queue[0].timestamp - self.timestamp
-            self.J_Jobs += (self.event_queue[0].timestamp - self.timestamp) * self.job_queue_len
-        self.timestamp = self.event_queue[0].timestamp
+            self.ticks_working += event.timestamp - self.timestamp
+            self.J_Jobs += (event.timestamp - self.timestamp) * self.job_queue_len
+        self.timestamp = event.timestamp
         
-    def tick_from(self):
-        self.update_timestamp()
+    def tick_from(self, event: Event):
+        self.update_timestamp(event)
         self.job_queue.pop(0)
         self.job_queue_len -= 1
         self.jobs_done += 1
         if self.job_queue_len != 0:
             self.emitEvent()
 
-    def tick_to(self):
-        self.update_timestamp()
-        self.job_queue.append((self.event_queue[0].timestamp, self.event_queue[0].timestamp_start))
+    def tick_to(self, event: Event):
+        self.update_timestamp(event)
+        self.job_queue.append((event.timestamp, event.timestamp_start))
         self.job_queue_len += 1
         if self.job_queue_len == 1:
             self.emitEvent()
@@ -59,7 +59,7 @@ class Server:
         #print(self.P_array)
 
         if self.id > 3:
-            to = len(self.P_array) - 1
+            to = len(self.P_array)
         else:
             to = self.indicies[self.indicies_index]
             self.indicies_index = (self.indicies_index + 1)
