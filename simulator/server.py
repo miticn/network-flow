@@ -14,12 +14,12 @@ class Server:
         self.s = s
         self.P_array = P_array
         self.J_Jobs = 0
-        self.cumulative_probs = np.cumsum(self.P_array)
         if self.id <= 3:
-            self.indicies_n = 3000000
+            self.cumulative_probs = np.cumsum(self.P_array)
+            self.indicies_n = 100000
             self.indicies_index = 0
             self.indicies = np.searchsorted(self.cumulative_probs, np.random.random(size=self.indicies_n), side="right")
-        self.exponential_values_n = 3000000
+        self.exponential_values_n = 100000
         self.exponential_values = np.random.exponential(s, size=self.exponential_values_n)
         self.exponential_index = 0
         self.job_queue_len = len(self.job_queue)
@@ -52,14 +52,20 @@ class Server:
             
     def emitEvent(self):
         timestamp = self.exponential_values[self.exponential_index] + self.timestamp
-        self.exponential_index = (self.exponential_index + 1) % self.exponential_values_n
+        self.exponential_index = (self.exponential_index + 1)
+        if self.exponential_index == self.exponential_values_n:
+            self.exponential_values = np.random.exponential(self.s, size=self.exponential_values_n)
+            self.exponential_index = 0
         #print(self.P_array)
 
         if self.id > 3:
             to = len(self.P_array) - 1
         else:
             to = self.indicies[self.indicies_index]
-            self.indicies_index = (self.indicies_index + 1) % self.indicies_n
+            self.indicies_index = (self.indicies_index + 1)
+            if self.indicies_index == self.indicies_n:
+                self.indicies = np.searchsorted(self.cumulative_probs, np.random.random(size=self.indicies_n), side="right")
+                self.indicies_index = 0
 
         heapq.heappush(self.event_queue, Event(timestamp, self.id, to, self.job_queue[0][1]))
 
