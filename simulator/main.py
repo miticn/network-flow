@@ -30,17 +30,16 @@ def simulate(K:int, alpha: int, r: int, time_min : int = 30, MAX_K: int = 5):
     jobGenerator = JobGenerator(alpha*r, event_queue, max_timestamp)
     exitNode = ExitNode(len(Servers), event_queue)
 
-    while len(event_queue)!=0:
-        if event_queue[0].fromm>=0 and event_queue[0].fromm<servers_len:
-            Servers[event_queue[0].fromm].tick()
-        elif event_queue[0].fromm == -1:
+    while len(event_queue) != 0:
+        if event_queue[0].fromm == -1:
             jobGenerator.tick()
+        else:
+            Servers[event_queue[0].fromm].tick_from()
         
-        if event_queue[0].fromm != event_queue[0].to:
-            if event_queue[0].to>=0 and event_queue[0].to<servers_len:
-                Servers[event_queue[0].to].tick()
-            elif event_queue[0].to == servers_len:
-                exitNode.tick()
+        if event_queue[0].to == servers_len:
+            exitNode.tick()
+        else:
+            Servers[event_queue[0].to].tick_to()
 
         heapq.heappop(event_queue)
 

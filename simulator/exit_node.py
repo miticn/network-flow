@@ -7,12 +7,9 @@ class ExitNode:
         self.cumulative_time = 0
 
     def tick(self):
-        if len(self.event_queue) == 0:
-            return
-        if self.event_queue[0].to == self.id:
-            self.jobs_done += 1
-            #print(self.event_queue[0].timestamp, self.event_queue[0].timestamp_start)
-            self.cumulative_time += self.event_queue[0].timestamp - self.event_queue[0].timestamp_start
+        self.jobs_done += 1
+        #print(self.event_queue[0].timestamp, self.event_queue[0].timestamp_start)
+        self.cumulative_time += self.event_queue[0].timestamp - self.event_queue[0].timestamp_start
 
     def get_T(self):
         #print(self.cumulative_time)

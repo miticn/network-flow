@@ -16,34 +16,39 @@ class Server:
         self.J_Jobs = 0
         self.cumulative_probs = np.cumsum(self.P_array)
         if self.id <= 3:
-            self.indicies_n = 1000000
+            self.indicies_n = 3000000
             self.indicies_index = 0
             self.indicies = np.searchsorted(self.cumulative_probs, np.random.random(size=self.indicies_n), side="right")
-        self.exponential_values_n = 1000000
+        self.exponential_values_n = 3000000
         self.exponential_values = np.random.exponential(s, size=self.exponential_values_n)
         self.exponential_index = 0
+        self.job_queue_len = len(self.job_queue)
+
 
     def get_J(self):
         return self.J_Jobs/self.timestamp
     
-    def tick(self):
-        job_queue_len = len(self.job_queue)
-        if job_queue_len != 0:
+    def update_timestamp(self):
+        #self.job_queue_len = len(self.job_queue)
+        if self.job_queue_len != 0:
             self.ticks_working += self.event_queue[0].timestamp - self.timestamp
-            self.J_Jobs += (self.event_queue[0].timestamp - self.timestamp) * job_queue_len
+            self.J_Jobs += (self.event_queue[0].timestamp - self.timestamp) * self.job_queue_len
         self.timestamp = self.event_queue[0].timestamp
         
-        if self.event_queue[0].fromm == self.id:
-            self.job_queue.pop(0)
-            job_queue_len -= 1
-            self.jobs_done += 1
-            if job_queue_len != 0:
-                self.emitEvent()
-        if self.event_queue[0].to == self.id:
-            self.job_queue.append((self.event_queue[0].timestamp, self.event_queue[0].timestamp_start))
-            job_queue_len += 1
-            if job_queue_len == 1:
-                self.emitEvent()
+    def tick_from(self):
+        self.update_timestamp()
+        self.job_queue.pop(0)
+        self.job_queue_len -= 1
+        self.jobs_done += 1
+        if self.job_queue_len != 0:
+            self.emitEvent()
+
+    def tick_to(self):
+        self.update_timestamp()
+        self.job_queue.append((self.event_queue[0].timestamp, self.event_queue[0].timestamp_start))
+        self.job_queue_len += 1
+        if self.job_queue_len == 1:
+            self.emitEvent()
             
     def emitEvent(self):
         timestamp = self.exponential_values[self.exponential_index] + self.timestamp
