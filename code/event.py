@@ -7,7 +7,6 @@ class Event(object):
             self.timestamp_start = timestamp_start
         self.fromm = fromm
         self.to = to
-        self.marked = False
 
     def __repr__(self):
         return f'Node value: {self.timestamp}, from: {self.fromm}, to: {self.to}'

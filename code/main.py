@@ -10,6 +10,9 @@ from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 
 
+from analysis import generate_graphs
+from analytical_solve import run_anaysis
+
 
 def simulate(K:int, alpha: int, r: int, P:np.ndarray, time_min : int = 30, MAX_K: int = 5):
     event_queue = []
@@ -66,7 +69,7 @@ def simulate_single_run(header, r_list, alpha_k, P, time_min = 30):
     print(f"Execution time: {execution_time} seconds")
 
     file_name = "rezultati_simulacija.csv"
-    write_results_to_csv(file_name, header, results)
+    write_results_to_csv("docs/"+file_name, header, results)
 
     print("Results written to file:", file_name)
 
@@ -99,7 +102,7 @@ def simulate_100_iterations(header, r_list, alpha_k, P, time_min = 30):
     print(f"Execution time: {execution_time} seconds")
 
     file_name = "rezultati_simulacija_usrednjeno.csv"
-    write_results_to_csv(file_name, header, averaged_results)
+    write_results_to_csv("docs/"+file_name, header, averaged_results)
 
     print("Results written to file:", file_name)
 
@@ -127,8 +130,10 @@ if __name__ == '__main__':
         print("1. Set simulated time. (current value: ", time_min, " minutes)")
         print("2. Simulate a single run")
         print("3. Simulate 100 iterations")
-        print("4. Exit")
-        choice = input("Enter your choice (1-4): ")
+        print("4. Run analysis")
+        print("5. Generate graphs")
+        print("6. Exit")
+        choice = input("Enter your choice (1-6): ")
 
         if choice == '1':
             time_min = int(input("Enter minimum time for simulation: "))
@@ -137,6 +142,10 @@ if __name__ == '__main__':
         elif choice == '3':
             simulate_100_iterations(header, r_list, alpha_k, P, time_min)
         elif choice == '4':
+            run_anaysis()
+        elif choice == '5':
+            generate_graphs()
+        elif choice == '6':
             print("Exiting the menu.")
             break
         else:
